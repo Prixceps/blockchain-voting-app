@@ -3,7 +3,7 @@
  * Handles all API interactions, DOM updates, and user feedback.
  */
 
-const API = '';
+const API = 'https://blockchain-voting-app-q31v.onrender.com';
 let selectedCandidateId = null;
 
 // ===== INITIALIZATION =====
