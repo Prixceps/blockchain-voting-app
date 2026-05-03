@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: blockchain-voting-app
+    env: docker
+    plan: free
+    region: ohio
+    branch: master
