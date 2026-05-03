@@ -14,30 +14,27 @@ import java.util.Map;
 @Service
 public class EmailService {
 
-    @Value("${SENDGRID_API_KEY:}")
-    private String sendGridApiKey;
+    @Value("${RESEND_API_KEY:}")
+    private String resendApiKey;
 
-    @Value("${SENDGRID_SENDER_EMAIL:}")
+    @Value("${RESEND_SENDER_EMAIL:onboarding@resend.dev}")
     private String senderEmail;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
     public void sendRegistrationEmail(String toEmail, String name, String voterId) {
-        if (sendGridApiKey == null || sendGridApiKey.isEmpty()) {
-            System.err.println("SendGrid API Key not configured. Skipping email sending.");
+        if (resendApiKey == null || resendApiKey.isEmpty()) {
+            System.err.println("Resend API Key not configured. Skipping email sending.");
             return;
         }
 
-        String url = "https://api.sendgrid.com/v3/mail/send";
+        String url = "https://api.resend.com/emails";
 
-        // Build the SendGrid JSON Payload
+        // Build the Resend JSON Payload
         Map<String, Object> payload = new HashMap<>();
         
-        Map<String, Object> personalizations = new HashMap<>();
-        personalizations.put("to", List.of(Map.of("email", toEmail)));
-        payload.put("personalizations", List.of(personalizations));
-        
-        payload.put("from", Map.of("email", senderEmail, "name", "Voting System"));
+        payload.put("from", "Voting System <" + senderEmail + ">");
+        payload.put("to", List.of(toEmail));
         payload.put("subject", "Your Voter Registration Details");
         
         String contentText = "Hello " + name + ",\n\n" +
@@ -47,20 +44,20 @@ public class EmailService {
                 "Best regards,\n" +
                 "Voting System Admin";
                 
-        payload.put("content", List.of(Map.of("type", "text/plain", "value", contentText)));
+        payload.put("text", contentText);
 
         // Set Headers
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(sendGridApiKey);
+        headers.setBearerAuth(resendApiKey);
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
 
         try {
             restTemplate.postForEntity(url, request, String.class);
-            System.out.println("Email sent successfully to " + toEmail + " via SendGrid.");
+            System.out.println("Email sent successfully to " + toEmail + " via Resend.");
         } catch (Exception e) {
-            System.err.println("Failed to send email via SendGrid: " + e.getMessage());
+            System.err.println("Failed to send email via Resend: " + e.getMessage());
         }
     }
 }
