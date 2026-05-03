@@ -5,6 +5,7 @@ import com.votingchain.blockchain.VoteTransaction;
 import com.votingchain.model.Candidate;
 import com.votingchain.model.ElectionResult;
 import com.votingchain.model.Voter;
+import com.votingchain.service.EmailService;
 import com.votingchain.service.VotingService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,9 +20,11 @@ import java.util.*;
 public class VotingController {
 
     private final VotingService votingService;
+    private final EmailService emailService;
 
-    public VotingController(VotingService votingService) {
+    public VotingController(VotingService votingService, EmailService emailService) {
         this.votingService = votingService;
+        this.emailService = emailService;
     }
 
     // ========== Voter Registration ==========
@@ -43,6 +46,12 @@ public class VotingController {
             response.put("voterId", voter.getVoterId());
             response.put("name", voter.getName());
             response.put("email", voter.getEmail());
+
+            // Send email asynchronously using SendGrid API
+            new Thread(() -> {
+                emailService.sendRegistrationEmail(voter.getEmail(), voter.getName(), voter.getVoterId());
+            }).start();
+            response.put("emailSent", true); // We indicate it was triggered
 
             return ResponseEntity.ok(response);
 
